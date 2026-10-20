@@ -1,0 +1,31 @@
+{
+  "documents": [
+    {
+      "id": "scientific_arxiv",
+      "filename": "2206.01062v1.pdf",
+      "url": "https://github.com/docling-project/docling/raw/main/tests/data/pdf/2206.01062v1.pdf",
+      "category": "scientific",
+      "why": "Figures, captions, two-column layout, equations — stresses fixed/recursive splits.",
+      "patterns_struggle": ["fixed", "recursive"],
+      "patterns_excel": ["element", "page", "hierarchical"]
+    },
+    {
+      "id": "financial_tables",
+      "filename": "table_extraction.pdf",
+      "url": "https://github.com/docling-project/docling/raw/main/tests/data/pdf/table_extraction.pdf",
+      "category": "financial_style",
+      "why": "Dense tables and structured numbers — baseline chunkers break row context.",
+      "patterns_struggle": ["fixed", "recursive"],
+      "patterns_excel": ["table_multirep", "element"]
+    },
+    {
+      "id": "layout_reduced",
+      "filename": "reduced.pdf",
+      "url": "https://github.com/docling-project/docling/raw/main/tests/data/pdf/reduced.pdf",
+      "category": "slide_deck",
+      "why": "Visual layout and mixed blocks — page-level vs element-aware divergence.",
+      "patterns_struggle": ["fixed"],
+      "patterns_excel": ["page", "element"]
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+# App services only — Qdrant runs in your local Docker stack (see `make qdrant`).
+services:
+  streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8501:8501"
+    environment:
+      QDRANT_HOST: host.docker.internal
+      QDRANT_PORT: ${QDRANT_PORT:-6343}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./data:/app/data
+    profiles:
+      - demo

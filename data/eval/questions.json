@@ -1,0 +1,98 @@
+[
+  {
+    "id": "fin_q1",
+    "question": "What was year-over-year revenue growth?",
+    "source_file": "sample_financial_report.pdf",
+    "evidence_text": "12%",
+    "element_type": "table",
+    "page_number": 1
+  },
+  {
+    "id": "fin_q2",
+    "question": "What is free cash flow in FY2025?",
+    "source_file": "sample_financial_report.pdf",
+    "evidence_text": "245",
+    "element_type": "table",
+    "page_number": 1
+  },
+  {
+    "id": "fin_q3",
+    "question": "What currency unit is used in the footnote?",
+    "source_file": "sample_financial_report.pdf",
+    "evidence_text": "USD millions",
+    "element_type": "text",
+    "page_number": 1
+  },
+  {
+    "id": "sci_q1",
+    "question": "What dataset is described in the title?",
+    "source_file": "sample_scientific_paper.pdf",
+    "evidence_text": "DocLayNet",
+    "element_type": "text",
+    "page_number": 1
+  },
+  {
+    "id": "sci_q2",
+    "question": "What does Figure 1 show?",
+    "source_file": "sample_scientific_paper.pdf",
+    "evidence_text": "label distributions",
+    "element_type": "text",
+    "page_number": 1
+  },
+  {
+    "id": "sci_q3",
+    "question": "How is F1 score defined in the equation?",
+    "source_file": "sample_scientific_paper.pdf",
+    "evidence_text": "2PR / (P + R)",
+    "element_type": "text",
+    "page_number": 1
+  },
+  {
+    "id": "manual_q1",
+    "question": "What input voltage range is supported?",
+    "source_file": "sample_product_manual.pdf",
+    "evidence_text": "20",
+    "element_type": "table",
+    "page_number": 1
+  },
+  {
+    "id": "manual_q2",
+    "question": "Which port should the data cable connect to?",
+    "source_file": "sample_product_manual.pdf",
+    "evidence_text": "J2",
+    "element_type": "text",
+    "page_number": 1
+  },
+  {
+    "id": "manual_q3",
+    "question": "What screw size is used for the bracket?",
+    "source_file": "sample_product_manual.pdf",
+    "evidence_text": "M4",
+    "element_type": "text",
+    "page_number": 1
+  },
+  {
+    "id": "slide_q1",
+    "question": "How many new logos were reported?",
+    "source_file": "sample_slide_deck.pdf",
+    "evidence_text": "48",
+    "element_type": "text",
+    "page_number": 1
+  },
+  {
+    "id": "slide_q2",
+    "question": "What was revenue growth in the deck?",
+    "source_file": "sample_slide_deck.pdf",
+    "evidence_text": "12%",
+    "element_type": "text",
+    "page_number": 1
+  },
+  {
+    "id": "slide_q3",
+    "question": "What is the reported NPS?",
+    "source_file": "sample_slide_deck.pdf",
+    "evidence_text": "62",
+    "element_type": "text",
+    "page_number": 1
+  }
+]
