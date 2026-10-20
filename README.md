@@ -103,6 +103,8 @@ gh auth login
 bash scripts/setup_github_remote.sh
 ```
 
+Repository: [github.com/shunvel/element-aware-chunking](https://github.com/shunvel/element-aware-chunking)
+
 Topics (from the plan) are applied from [.github/TOPICS.txt](.github/TOPICS.txt): `rag`, `chunking`, `qdrant`, `multimodal-rag`, `pdf`, `retrieval`, `vector-database`, `docling`, `streamlit`, `python`.
 
 ## License
