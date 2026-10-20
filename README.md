@@ -38,6 +38,67 @@ Most chunking examples focus on plain text. This project shows **six comparable 
 | [Multi-Modal-RAG](https://github.com/ankitanand3/Multi-Modal-RAG) | End-to-end multimodal app | Yes | No | Partial |
 | **This repo** | Pattern catalog + teaching | Yes | **Yes** | **Yes** |
 
+## Architecture
+
+End-to-end flow: **PDF → parse into layout elements → chunk with a chosen pattern → (optional) embed and store in Qdrant → visualize or evaluate retrieval.**
+
+```mermaid
+flowchart LR
+  pdf[PDF files] --> parser[Parser: Docling or PyMuPDF]
+  parser --> doc[Document: typed Elements]
+  doc --> chunker[Chunker: 1 of 6 patterns]
+  chunker --> chunks[Chunk list]
+  chunks --> ui[Streamlit overlays]
+  chunks --> embed[FastEmbed vectors]
+  embed --> qdrant[(Qdrant)]
+  qdrant --> search[Filtered search]
+  chunks --> eval[Eval harness]
+```
+
+### Parsing (layout → structured document)
+
+Parsers turn each PDF into a **`Document`**: an ordered list of **`Element`** objects (text, table, image) with page number, optional **bounding box**, table markdown, and image paths. Chunking is **parser-agnostic** — every pattern runs on the same parsed output so comparisons are fair.
+
+| Tool | Role |
+|------|------|
+| [Docling](https://github.com/docling-project/docling) (default) | Layout-aware extraction: typed blocks, reading order, boxes. Falls back to PyMuPDF if Docling is not installed. |
+| [PyMuPDF](https://pymupdf.readthedocs.io/) | Lightweight path: text blocks, `find_tables()`, image extraction, page PNGs for the UI. Set `PARSER_BACKEND=pymupdf`. |
+
+Entry point: `parse_document()` in `pipeline.py` — configured via `PARSER_BACKEND` in `.env`.
+
+### Chunking (six patterns)
+
+Each pattern is a small class under `src/element_aware_chunking/patterns/` that implements the same interface: `chunk(document) -> list[Chunk]`.
+
+| Pattern | Algorithm (plain English) |
+|---------|---------------------------|
+| `fixed` | Fixed character windows with overlap on full document text (naive baseline). |
+| `recursive` | Hierarchical text split: paragraphs → lines → sentences until under a size limit. |
+| `page` | One chunk per page — all text on that page combined. |
+| `element` | **One chunk per layout element**; tables and figures stay intact; metadata includes `bbox` and `element_type`. |
+| `table_multirep` | Table-focused: short linearized summary for embedding + full table markdown in payload. |
+| `hierarchical` | Smaller child chunks for retrieval linked to larger parent chunks for generation context. |
+
+Entry point: `chunk_document(doc, pattern)`. Which pattern to pick: [DECISION.md](DECISION.md).
+
+### Embeddings & vector store (optional)
+
+| Tool | Role |
+|------|------|
+| [FastEmbed](https://github.com/qdrant/fastembed) | Local dense embeddings (default `BAAI/bge-small-en-v1.5`). |
+| [Qdrant](https://qdrant.tech/) | Vector DB on `localhost:6343`; collection `element_aware_chunks`; named vectors `text` and `table_summary`. |
+
+`make ingest` runs parse → chunk (all six patterns) → embed → upsert. Payload and index design: [docs/qdrant_payload_design.md](docs/qdrant_payload_design.md).
+
+### Demo & evaluation
+
+| Component | Role |
+|-----------|------|
+| **Streamlit** (`make ui`) | Cached parse/chunk; side-by-side pattern compare; bbox overlays when metadata includes boxes. |
+| **Eval** (`make eval`) | Hand-labeled Q&A over sample PDFs; embedding retrieval; Recall@3 / MRR by pattern and element type. |
+
+Streamlit overlays and eval do **not** require Qdrant. The Streamlit **Qdrant search** panel and `make ingest` do.
+
 ## Patterns
 
 | Pattern | Module | When to use |
