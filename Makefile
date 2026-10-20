@@ -1,4 +1,4 @@
-.PHONY: install install-docling demo ingest eval test qdrant download-samples samples demo-gif verify
+.PHONY: install install-docling demo ingest eval test qdrant download-samples samples demo-gif verify ui
 
 # Local Qdrant Docker stack (override in .env)
 QDRANT_COMPOSE_FILE ?= ../rag-okf/docker-compose.yml
@@ -25,6 +25,9 @@ qdrant:
 demo:
 	docker compose --profile demo up --build
 
+ui:
+	$(PY) -m streamlit run app/streamlit_app.py
+
 ingest:
 	$(RUN_SCRIPT) scripts/ingest_all_patterns.py
 
@@ -42,6 +45,9 @@ samples:
 
 demo-gif:
 	$(RUN_SCRIPT) scripts/generate_demo_gif.py
+
+screenshots:
+	$(RUN_SCRIPT) scripts/capture_readme_screenshots.py
 
 verify:
 	bash scripts/verify_local.sh

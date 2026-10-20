@@ -8,6 +8,18 @@ Element-aware chunking design patterns for RAG — text, tables & images → Qdr
 
 *Same page — `fixed` (no layout respect) vs `element` (bbox-aligned units). Regenerate: `make demo-gif`.*
 
+### Screenshots (localhost)
+
+**Streamlit — compare patterns** (`make ui` → http://localhost:8501):
+
+![Streamlit compare fixed vs element-aware](docs/assets/streamlit-compare-patterns.png)
+
+**Qdrant — collections after ingest** (`make ingest`, default `element_aware_chunks` on `:6343`):
+
+![Qdrant collections including element_aware_chunks](docs/assets/qdrant-collections.png)
+
+Regenerate images: `make screenshots` (Streamlit frame from sample PDF; Qdrant panel when the server is reachable).
+
 ## Why this repo
 
 Most chunking examples focus on plain text. This project shows **six comparable patterns** on the **same PDFs**, with:
@@ -58,20 +70,87 @@ Full toolchain notes: **[docs/SETUP.md](docs/SETUP.md)**
 make install              # python3 + pip, or uv if installed
 make install-docling      # optional: richer Docling parser
 cp .env.example .env
-make verify               # tests + eval (+ Qdrant check if Docker is up)
-make qdrant               # Docker → rag-okf Qdrant on :6343
-make ingest
-python3 -m streamlit run app/streamlit_app.py
+make samples
+make verify               # tests + eval (+ Qdrant reachability when :6343 is up)
+make ingest               # requires Qdrant — see below
+python3 -m streamlit run app/streamlit_app.py   # http://localhost:8501
 ```
 
-**Prerequisites:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) for Qdrant (`make qdrant`). Without Docker you can still run tests, eval, and Streamlit overlays.
+### See chunking on localhost
+
+1. `make samples` (if `data/raw/` is empty).
+2. `python3 -m streamlit run app/streamlit_app.py` from the repo root.
+3. Open **http://localhost:8501**.
+4. In the sidebar, choose **Compare patterns** → document **`sample_product_manual.pdf`** → page **1** → **fixed** vs **element**.
+5. Watch **colored boxes** on the PDF (element-aware) vs no boxes (fixed) and read the **chunk text** lists under each panel.
+
+Qdrant is not required for this UI; use **Qdrant search** only after `make ingest`.
 
 ```bash
-make samples      # offline PDFs in data/raw/
 make demo-gif     # README hero animation
+make screenshots  # PNGs for README (Streamlit + Qdrant)
 make eval
 make test
 ```
+
+Tests, eval, and Streamlit **overlays** work without Qdrant. **Ingest** and the Streamlit **Qdrant search** panel need a server on `QDRANT_HOST`:`QDRANT_PORT` (default `localhost:6343`).
+
+## Qdrant (local)
+
+This repo uses a **dedicated collection** — `element_aware_chunks` (set via `QDRANT_COLLECTION` in `.env`). It can live on the same Qdrant instance as other projects (e.g. an existing `saas_enterprise_catalog` collection); ingest only creates/updates `element_aware_chunks`.
+
+### 1. Check if Qdrant is already running
+
+```bash
+curl -s http://localhost:6343/collections
+```
+
+If you get JSON with `"status":"ok"`, **skip `make qdrant`** and go to step 3 below.
+
+### 2. Start Qdrant (only if curl fails)
+
+**Option A — Docker** (needs `docker` on your PATH):
+
+```bash
+make qdrant   # docker compose -f ../rag-okf/docker-compose.yml up -d qdrant
+```
+
+Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) if `docker: command not found`. Override the compose file with `QDRANT_COMPOSE_FILE` in `.env`.
+
+**Option B — already running elsewhere**
+
+If another stack (Docker, binary, cloud tunnel) already serves Qdrant on **6343**, align `.env` and use that — no `make qdrant` required.
+
+### 3. Ingest chunks
+
+```bash
+make ingest
+```
+
+First run downloads the FastEmbed model; then each sample PDF is chunked with all six patterns and upserted to Qdrant.
+
+Confirm the collection:
+
+```bash
+curl -s http://localhost:6343/collections/element_aware_chunks | python3 -m json.tool | head -20
+```
+
+### 4. Verify search
+
+```bash
+python3 -c "
+from element_aware_chunking.qdrant_store import QdrantChunkStore
+hits = QdrantChunkStore().search('revenue', limit=3, pattern='element')
+print(len(hits), 'hits')
+for h in hits:
+    p = h.payload or {}
+    print(round(h.score, 3), p.get('element_type'), (p.get('text') or '')[:60])
+"
+```
+
+In Streamlit, open **Qdrant search** at the bottom of the page and query with the same pattern filter you used at ingest time.
+
+Payload and named-vector layout: **[docs/qdrant_payload_design.md](docs/qdrant_payload_design.md)**.
 
 ## Project layout
 
@@ -88,9 +167,10 @@ docs/qdrant_payload_design.md
 | Variable | Default |
 |----------|---------|
 | `PARSER_BACKEND` | `docling` (falls back to `pymupdf`) |
-| `QDRANT_HOST` / `QDRANT_PORT` | `localhost` / `6343` (local Docker) |
+| `QDRANT_HOST` / `QDRANT_PORT` | `localhost` / `6343` |
+| `QDRANT_COLLECTION` | `element_aware_chunks` |
 | `QDRANT_URL` | optional override of host+port |
-| `QDRANT_COMPOSE_FILE` | `../rag-okf/docker-compose.yml` for `make qdrant` |
+| `QDRANT_COMPOSE_FILE` | `../rag-okf/docker-compose.yml` (only for `make qdrant`) |
 | `EMBEDDING_MODEL` | `BAAI/bge-small-en-v1.5` |
 
 ## GitHub
