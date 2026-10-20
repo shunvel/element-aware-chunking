@@ -11,4 +11,3 @@ dist/
 .streamlit/secrets.toml
 :memory:*
 *.ses
-data/processed/

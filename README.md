@@ -93,6 +93,18 @@ docs/qdrant_payload_design.md
 | `QDRANT_COMPOSE_FILE` | `../rag-okf/docker-compose.yml` for `make qdrant` |
 | `EMBEDDING_MODEL` | `BAAI/bge-small-en-v1.5` |
 
+## GitHub
+
+This project is a standalone git repo (`element-aware-chunking`). To publish:
+
+```bash
+brew install gh   # if needed
+gh auth login
+bash scripts/setup_github_remote.sh
+```
+
+Topics (from the plan) are applied from [.github/TOPICS.txt](.github/TOPICS.txt): `rag`, `chunking`, `qdrant`, `multimodal-rag`, `pdf`, `retrieval`, `vector-database`, `docling`, `streamlit`, `python`.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
