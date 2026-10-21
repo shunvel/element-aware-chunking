@@ -9,17 +9,37 @@ from fastembed import TextEmbedding
 from element_aware_chunking.models import Chunk
 
 
+class EmbeddingModelUnavailableError(RuntimeError):
+    """Raised when the configured embedding model cannot be loaded locally."""
+
+
 @lru_cache(maxsize=1)
 def get_text_embedder(model_name: str | None = None) -> TextEmbedding:
     name = model_name or os.getenv("EMBEDDING_MODEL", "BAAI/bge-small-en-v1.5")
-    return TextEmbedding(model_name=name)
+    try:
+        return TextEmbedding(model_name=name)
+    except Exception as exc:
+        raise EmbeddingModelUnavailableError(
+            f"Could not load embedding model '{name}'. "
+            "Set HF_TOKEN in .env (or log in with `huggingface-cli login`) and restart the app. "
+            "Once downloaded, FastEmbed uses its local cache."
+        ) from exc
 
 
 def embed_texts(texts: list[str], model_name: str | None = None) -> list[list[float]]:
     if not texts:
         return []
-    model = get_text_embedder(model_name)
-    vectors = list(model.embed(texts))
+    name = model_name or os.getenv("EMBEDDING_MODEL", "BAAI/bge-small-en-v1.5")
+    try:
+        model = get_text_embedder(name)
+        vectors = list(model.embed(texts))
+    except EmbeddingModelUnavailableError:
+        raise
+    except Exception as exc:
+        raise EmbeddingModelUnavailableError(
+            f"Could not embed with '{name}'. "
+            "Check your network/Hugging Face authentication and restart Streamlit."
+        ) from exc
     return [v.tolist() if hasattr(v, "tolist") else list(v) for v in vectors]
 
 

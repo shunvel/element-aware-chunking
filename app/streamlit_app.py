@@ -5,6 +5,7 @@ from pathlib import Path
 import streamlit as st
 from PIL import Image, ImageDraw
 
+from element_aware_chunking.embeddings import EmbeddingModelUnavailableError
 from element_aware_chunking.models import Chunk
 from element_aware_chunking.patterns import ALL_PATTERN_NAMES
 from element_aware_chunking.pipeline import chunk_document, parse_document
@@ -264,4 +265,16 @@ with st.expander("Qdrant search (after `make ingest`)", expanded=False):
                 )
                 st.text((payload.get("text") or "")[:400])
         except Exception as exc:
-            st.error(f"Qdrant unavailable: {exc}")
+            if isinstance(exc, EmbeddingModelUnavailableError):
+                st.warning("Qdrant is reachable, but the local query embedding model is unavailable.")
+                st.code(
+                    "huggingface-cli login\n"
+                    "# or add HF_TOKEN=hf_... to .env, then restart `make ui`",
+                    language="bash",
+                )
+                st.caption(
+                    "Keep `EMBEDDING_MODEL=BAAI/bge-small-en-v1.5` so new query vectors "
+                    "match the vectors already stored in `element_aware_chunks`."
+                )
+            else:
+                st.error(f"Qdrant search failed: {exc}")

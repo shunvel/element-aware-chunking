@@ -2,7 +2,24 @@ from element_aware_chunking.models import Chunk
 from element_aware_chunking.qdrant_store import QdrantChunkStore
 
 
-def test_qdrant_upsert_and_search_memory():
+def test_qdrant_upsert_and_search_memory(monkeypatch):
+    """Keep the integration contract offline; model download is tested separately."""
+    import element_aware_chunking.qdrant_store as store_module
+
+    def fake_embed_chunks(chunks, _model_name=None):
+        return {
+            chunk.id: [1.0, 0.0] if "Revenue" in chunk.text else [0.0, 1.0]
+            for chunk in chunks
+        }
+
+    monkeypatch.setattr(store_module, "embed_chunks", fake_embed_chunks)
+    monkeypatch.setattr(store_module, "table_summary_vector", lambda *_args: None)
+    monkeypatch.setattr(store_module, "vector_size", lambda *_args: 2)
+    monkeypatch.setattr(
+        "element_aware_chunking.embeddings.embed_texts",
+        lambda _texts, _model_name=None: [[1.0, 0.0]],
+    )
+
     store = QdrantChunkStore(url=":memory:", collection="test_chunks")
     chunks = [
         Chunk(

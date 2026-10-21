@@ -90,6 +90,8 @@ Entry point: `chunk_document(doc, pattern)`. Which pattern to pick: [DECISION.md
 
 `make ingest` runs parse → chunk (all six patterns) → embed → upsert. Payload and index design: [docs/qdrant_payload_design.md](docs/qdrant_payload_design.md).
 
+> **First model download:** FastEmbed needs to download `BAAI/bge-small-en-v1.5` before ingest or search. If Hugging Face returns `403`, create a read token at [Hugging Face settings](https://huggingface.co/settings/tokens), add `HF_TOKEN=hf_...` to `.env` (or run `huggingface-cli login`), then restart Streamlit. Keep the same embedding model after indexing: changing models requires recreating and re-ingesting the collection because vector spaces are not compatible.
+
 ### Demo & evaluation
 
 | Component | Role |
